@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Amazon Login LiveView</title>
+  <style>
+    iframe { width: 100%; height: 90vh; border: none; }
+    #loading { font-family: sans-serif; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h2>🔐 Amazon Login via LiveView</h2>
+  <button onclick="start()">Start Login</button>
+  <div id="loading"></div>
+  <iframe id="liveview" style="display:none;"></iframe>
+
+  <script>
+    let pollInterval = null;
+
+    async function start() {
+      document.getElementById("loading").textContent = "⏳ Launching LiveView...";
+      const res = await fetch("/start");
+      const data = await res.json();
+      const iframe = document.getElementById("liveview");
+
+      iframe.src = data.liveUrl;
+      iframe.style.display = "block";
+      document.getElementById("loading").textContent = "✅ Enter your credentials...";
+
+      pollInterval = setInterval(async () => {
+        const status = await fetch("/status").then(r => r.json());
+        if (status.shouldClose) {
+          iframe.style.display = "none";
+          document.getElementById("loading").textContent = "🎉 Login complete. Continuing...";
+          clearInterval(pollInterval);
+        }
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
